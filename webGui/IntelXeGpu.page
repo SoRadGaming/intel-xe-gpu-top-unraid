@@ -2,12 +2,44 @@
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once "$docroot/webGui/include/Helpers.php";
 ?>
-<table class='table'>
-  <tr><th>Intel Xe GPU</th><th>Value</th></tr>
-  <?php
-    $data = json_decode(file_get_contents("/usr/local/emhttp/plugins/intel-xe-gpu-top/include/IntelXeGpu.json.php"), true);
-    foreach ($data as $key => $value) {
-        echo "<tr><td>$key</td><td>$value</td></tr>";
+<?php
+  $json = json_decode(file_get_contents("/usr/local/emhttp/plugins/intel-xe-gpu-top/include/IntelXeGpu.json.php"), true);
+  if (!$json) {
+    echo "<p>No data available</p>";
+    return;
+  }
+
+  // If the collector returns an object with a "cards" array, iterate that.
+  $cards = isset($json['cards']) ? $json['cards'] : null;
+  if ($cards && is_array($cards)) {
+    foreach ($cards as $card) {
+      $cardName = htmlspecialchars($card['name'] ?? ($card['pci_path'] ?? 'card'));
+      echo "<h3>$cardName</h3>";
+      echo "<table class='table'>";
+      echo "<tr><th>Metric</th><th>Value</th></tr>";
+      if (isset($card['error'])) {
+        echo "<tr><td colspan='2'>Error: " . htmlspecialchars($card['error']) . "</td></tr>";
+      }
+      foreach (['temperatures','powers','fans'] as $group) {
+        if (!empty($card[$group]) && is_array($card[$group])) {
+          foreach ($card[$group] as $k => $v) {
+            $k_esc = htmlspecialchars($k);
+            $v_esc = htmlspecialchars((string)$v);
+            echo "<tr><td>$group / $k_esc</td><td>$v_esc</td></tr>";
+          }
+        }
+      }
+      echo "</table>";
     }
-  ?>
-</table>
+  } else {
+    // Fallback: assume simple key/value map
+    echo "<table class='table'>";
+    echo "<tr><th>Key</th><th>Value</th></tr>";
+    foreach ($json as $k => $v) {
+      $k_esc = htmlspecialchars($k);
+      $v_esc = htmlspecialchars(json_encode($v));
+      echo "<tr><td>$k_esc</td><td>$v_esc</td></tr>";
+    }
+    echo "</table>";
+  }
+

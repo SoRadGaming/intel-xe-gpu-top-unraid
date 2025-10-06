@@ -1,4 +1,81 @@
 #!/bin/bash
+# Intel Xe GPU Top plugin init script for Unraid
+# Provides: intel-xe-gpu-top
+# Author: SoRadGaming
+
+PIDFILE="/var/run/intel_xe_collector.pid"
+DAEMON="/usr/local/sbin/intel_xe_collector.py"
+DAEMON_OPTS="--daemon --port 9200"
+
+start() {
+  if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+    echo "intel-xe-gpu-top already running (pid $(cat $PIDFILE))"
+    return 0
+  fi
+  echo "Starting intel-xe-gpu-top..."
+  "$DAEMON" $DAEMON_OPTS &
+  echo $! > "$PIDFILE"
+  sleep 1
+  if kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+    echo "Started (pid $(cat $PIDFILE))"
+    return 0
+  else
+    echo "Failed to start intel-xe-gpu-top"
+    rm -f "$PIDFILE"
+    return 1
+  fi
+}
+
+stop() {
+  if [ ! -f "$PIDFILE" ]; then
+    echo "intel-xe-gpu-top not running"
+    return 0
+  fi
+  PID=$(cat "$PIDFILE")
+  echo "Stopping intel-xe-gpu-top (pid $PID)..."
+  kill "$PID" 2>/dev/null || true
+  sleep 1
+  if kill -0 "$PID" 2>/dev/null; then
+    echo "Process did not exit, killing..."
+    kill -9 "$PID" 2>/dev/null || true
+  fi
+  rm -f "$PIDFILE"
+  echo "Stopped"
+  return 0
+}
+
+status() {
+  if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
+    echo "intel-xe-gpu-top running (pid $(cat $PIDFILE))"
+    return 0
+  else
+    echo "intel-xe-gpu-top not running"
+    return 1
+  fi
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart|reload)
+    stop
+    start
+    ;;
+  status)
+    status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 2
+    ;;
+esac
+
+exit 0
+#!/bin/bash
 case "$1" in
   start)
     echo "[Intel-Xe-GPU] Starting collector..."
