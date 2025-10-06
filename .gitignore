@@ -1,5 +1,4 @@
-# Ignore built plugin packages (release artifacts)
-release/*.plg
+# Release artifacts are allowed to be committed. Remove this block if you want to ignore them.
 
 # Python
 __pycache__/
