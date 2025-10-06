@@ -16,10 +16,13 @@ import http.server
 import socketserver
 import argparse
 import sys
+import re
+import logging
 from pathlib import Path
 import glob
 
 SYSFS_DRM = Path("/sys/class/drm")
+DEFAULT_LOG = Path("/var/log/intel-xe-gpu.log")
 
 
 def _read_text(path: Path):
@@ -121,27 +124,52 @@ def probe_card(card_path: Path):
     found_any = False
     card_metrics = {"temperatures": {}, "powers": {}, "fans": {}}
 
-    # look for hwmon under the PCI device
-    hwmon_glob = list(pci_dev.glob("hwmon/hwmon*"))
-    for hw in hwmon_glob:
-        try:
-            parsed = parse_hwmon(hw)
-            # merge parsed maps
-            for k in ("temperatures", "powers", "fans"):
-                card_metrics[k].update(parsed.get(k, {}))
-            found_any = True
-        except Exception:
-            continue
+    # discover hwmon paths in a few places:
+    hwmon_candidates = []
+    try:
+        hwmon_candidates += list(pci_dev.glob('hwmon/hwmon*'))
+    except Exception:
+        pass
+    try:
+        hwmon_candidates += list(pci_dev.glob('../*/hwmon/hwmon*'))
+    except Exception:
+        pass
 
-    # Some drivers expose hwmon one level up
-    parent_hwmon = list(pci_dev.glob("../*/hwmon/hwmon*"))
-    for hw in parent_hwmon:
+    # include any hwmon entries that point back to this PCI device (best-effort)
+    try:
+        for hw in glob.glob('/sys/class/hwmon/hwmon*'):
+            hwp = Path(hw)
+            # check for a 'device' symlink that points to the same PCI device
+            devlink = hwp / 'device'
+            if devlink.exists():
+                try:
+                    target = Path(os.path.realpath(devlink))
+                    if str(target).startswith(str(pci_dev)) or str(pci_dev).startswith(str(target)):
+                        hwmon_candidates.append(hwp)
+                        continue
+                except Exception:
+                    pass
+            # fallback: include hwmon entries whose name suggests GPU/Intel
+            name = _read_text(hwp / 'name')
+            if name and ('gpu' in name.lower() or 'intel' in name.lower() or 'i915' in name.lower()):
+                hwmon_candidates.append(hwp)
+    except Exception:
+        pass
+
+    # de-duplicate
+    uniq_hw = []
+    for p in hwmon_candidates:
+        if p not in uniq_hw and p.exists():
+            uniq_hw.append(p)
+
+    for hw in uniq_hw:
         try:
             parsed = parse_hwmon(hw)
             for k in ("temperatures", "powers", "fans"):
                 card_metrics[k].update(parsed.get(k, {}))
             found_any = True
         except Exception:
+            logging.exception(f"failed parsing hwmon {hw}")
             continue
 
     card.update(card_metrics)
@@ -173,19 +201,15 @@ def get_gpu_metrics():
     if not SYSFS_DRM.exists():
         results["error"] = "/sys/class/drm not present"
         return results
-
-    cards = sorted(SYSFS_DRM.glob('card*'))
+    # only include entries like card0, card1 (ignore renderD*, controlD* and other names)
+    cards = [p for p in SYSFS_DRM.glob('card*') if re.match(r'^card\d+$', p.name)]
+    cards = sorted(cards)
     for c in cards:
-        # only consider primary cards (cardX) not renderD or controlD
-        if c.name.startswith('card') and not c.name.startswith('card'):
-            continue
-        # skip entries like controlDxxx which aren't cards
-        if 'render' in c.name or 'control' in c.name:
-            continue
         try:
             card_metrics = probe_card(c)
             results["cards"].append(card_metrics)
         except Exception as e:
+            logging.exception(f"probe_card failed for {c}")
             results["cards"].append({"name": c.name, "error": str(e)})
 
     if not results["cards"]:
@@ -228,15 +252,29 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=9200)
     parser.add_argument("--daemon", action="store_true")
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging to /var/log/intel-xe-gpu.log")
     args = parser.parse_args()
 
+    # configure logging
+    try:
+        DEFAULT_LOG.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG, filename=str(DEFAULT_LOG), filemode='a', format='%(asctime)s %(levelname)s %(message)s')
+    else:
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
     if args.daemon:
+        logging.info("starting intel_xe_collector in daemon mode")
         t = threading.Thread(target=run_server, args=(args.port,), daemon=True)
         t.start()
         try:
             while True:
                 time.sleep(10)
         except KeyboardInterrupt:
+            logging.info("interrupt, exiting")
             sys.exit(0)
     else:
+        # one-shot invocation: print metrics to stdout
         print(json.dumps(get_gpu_metrics(), indent=2))

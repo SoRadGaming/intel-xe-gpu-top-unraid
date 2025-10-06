@@ -4,8 +4,9 @@
 # Author: SoRadGaming
 
 PIDFILE="/var/run/intel_xe_collector.pid"
+PYTHON="/usr/bin/python3"
 DAEMON="/usr/local/sbin/intel_xe_collector.py"
-DAEMON_OPTS="--daemon --port 9200"
+DAEMON_OPTS="--daemon --port 9200 --debug"
 
 start() {
   if [ -f "$PIDFILE" ] && kill -0 $(cat "$PIDFILE") 2>/dev/null; then
@@ -13,7 +14,12 @@ start() {
     return 0
   fi
   echo "Starting intel-xe-gpu-top..."
-  "$DAEMON" $DAEMON_OPTS &
+  # prefer python3 executable; fall back to running the script directly
+  if [ -x "$PYTHON" ]; then
+    nohup "$PYTHON" "$DAEMON" $DAEMON_OPTS >/var/log/intel-xe-gpu.log 2>&1 &
+  else
+    nohup "$DAEMON" $DAEMON_OPTS >/var/log/intel-xe-gpu.log 2>&1 &
+  fi
   echo $! > "$PIDFILE"
   sleep 1
   if kill -0 $(cat "$PIDFILE") 2>/dev/null; then
@@ -75,26 +81,3 @@ case "$1" in
 esac
 
 exit 0
-#!/bin/bash
-case "$1" in
-  start)
-    echo "[Intel-Xe-GPU] Starting collector..."
-    nohup /usr/local/sbin/intel_xe_collector.py --daemon >/var/log/intel-xe-gpu.log 2>&1 &
-    ;;
-  stop)
-    echo "[Intel-Xe-GPU] Stopping collector..."
-    pkill -f intel_xe_collector.py
-    ;;
-  restart)
-    $0 stop
-    sleep 1
-    $0 start
-    ;;
-  status)
-    pgrep -af intel_xe_collector.py || echo "Intel Xe collector not running."
-    ;;
-  *)
-    echo "Usage: $0 {start|stop|restart|status}"
-    exit 1
-    ;;
-esac
