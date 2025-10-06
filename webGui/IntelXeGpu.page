@@ -1,0 +1,13 @@
+<?php
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once "$docroot/webGui/include/Helpers.php";
+?>
+<table class='table'>
+  <tr><th>Intel Xe GPU</th><th>Value</th></tr>
+  <?php
+    $data = json_decode(file_get_contents("/usr/local/emhttp/plugins/intel-xe-gpu-top/include/IntelXeGpu.json.php"), true);
+    foreach ($data as $key => $value) {
+        echo "<tr><td>$key</td><td>$value</td></tr>";
+    }
+  ?>
+</table>

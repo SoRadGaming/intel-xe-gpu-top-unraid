@@ -1,0 +1,23 @@
+#!/bin/bash
+case "$1" in
+  start)
+    echo "[Intel-Xe-GPU] Starting collector..."
+    nohup /usr/local/sbin/intel_xe_collector.py --daemon >/var/log/intel-xe-gpu.log 2>&1 &
+    ;;
+  stop)
+    echo "[Intel-Xe-GPU] Stopping collector..."
+    pkill -f intel_xe_collector.py
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  status)
+    pgrep -af intel_xe_collector.py || echo "Intel Xe collector not running."
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac

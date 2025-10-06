@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<PLUGIN name="intel-xe-gpu-top" author="SoRadGaming" version="2025.01" pluginURL="https://github.com/SoRadGaming/intel-xe-gpu-top-unraid" support="https://forums.unraid.net" min="6.10.0">
+  <CHANGES>
+    Initial release — Intel Xe GPU plugin with full metrics and Unraid integration.
+  </CHANGES>
+
+  <FILE Name="/boot/config/plugins/intel-xe-gpu-top/install.sh" Mode="0755">install.sh</FILE>
+  <FILE Name="/boot/config/plugins/intel-xe-gpu-top/remove.sh" Mode="0755">remove.sh</FILE>
+  <FILE Name="/usr/local/emhttp/plugins/intel-xe-gpu-top/IntelXeGpu.page" Mode="0644">webGui/IntelXeGpu.page</FILE>
+  <FILE Name="/usr/local/emhttp/plugins/intel-xe-gpu-top/include/IntelXeGpu.json.php" Mode="0644">webGui/include/IntelXeGpu.json.php</FILE>
+  <FILE Name="/usr/local/sbin/intel_xe_collector.py" Mode="0755">bin/intel_xe_collector.py</FILE>
+  <FILE Name="/etc/rc.d/S99intel-xe-gpu-top" Mode="0755">etc/rc.d/S99intel-xe-gpu-top</FILE>
+
+  <INSTALL>install.sh</INSTALL>
+  <REMOVE>remove.sh</REMOVE>
+</PLUGIN>
