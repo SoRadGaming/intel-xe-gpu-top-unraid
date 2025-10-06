@@ -44,6 +44,9 @@ Copy-Item -Path (Join-Path $root 'webGui\include\IntelXeGpu.json.php') -Destinat
 Copy-Item -Path (Join-Path $root 'bin\intel_xe_collector.py') -Destination (Join-Path $tmp 'usr\local\sbin\intel_xe_collector.py') -Force
 Copy-Item -Path (Join-Path $root 'etc\rc.d\S99intel-xe-gpu-top') -Destination (Join-Path $tmp 'etc\rc.d\S99intel-xe-gpu-top') -Force
 
+# also include this plugin XML manifest at the root of the archive (required by Unraid)
+Copy-Item -Path (Join-Path $root 'intel-xe-gpu-top.plg') -Destination (Join-Path $tmp 'intel-xe-gpu-top.plg') -Force
+
 
 # Create tar.gz using system tar
 Push-Location $tmp
