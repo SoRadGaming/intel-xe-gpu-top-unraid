@@ -46,7 +46,7 @@ Linux/WSL/Unraid (bash):
 
 ```bash
 ./scripts/build_plg.sh
-# produces intel-xe-gpu-top.plg in the repo root
+# produces release/intel-xe-gpu-top.plg
 ```
 
 Windows (PowerShell):
@@ -54,7 +54,7 @@ Windows (PowerShell):
 ```powershell
 .
 \scripts\build_plg.ps1
-# produces intel-xe-gpu-top.plg in the repo root
+# produces release\intel-xe-gpu-top.plg
 ```
 
 Install the produced `.plg` via the Unraid web UI: Plugins → Install Plugin → Choose File and upload the `.plg` created above.

@@ -5,7 +5,8 @@ set -euo pipefail
 # Output: intel-xe-gpu-top.plg in the repository root.
 
 ROOT_DIR="$(pwd)"
-OUT="$ROOT_DIR/intel-xe-gpu-top.plg"
+mkdir -p "$ROOT_DIR/release"
+OUT="$ROOT_DIR/release/intel-xe-gpu-top.plg"
 TMPDIR="$(mktemp -d)"
 
 cleanup() {
