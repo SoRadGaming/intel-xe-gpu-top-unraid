@@ -3,8 +3,8 @@
   <!ENTITY name      "intel-xe-gpu-top">
   <!ENTITY author    "SoRadGaming">
   <!ENTITY version   "2025.01">
-  <!ENTITY gitURL    "https://github.com/<owner>/<repo>/releases/download">
-  <!ENTITY md5       "aee6b5a9b674e5ff4caeec9b312724b8">
+  <!ENTITY gitURL    "https://github.com/SoRadGaming/intel-xe-gpu-top-unraid/releases/download">
+  <!ENTITY md5       "ab1183a016e474220839f7389907152b">
   <!ENTITY plugin    "/boot/config/plugins/&name;">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
 ]>

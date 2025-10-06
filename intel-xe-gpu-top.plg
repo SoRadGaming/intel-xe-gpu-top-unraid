@@ -1,4 +1,4 @@
-<?xml version='1.0' standalone='yes'?>
+﻿<?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
   <!ENTITY name      "intel-xe-gpu-top">
   <!ENTITY author    "SoRadGaming">
@@ -24,3 +24,4 @@ Initial release - Intel Xe GPU plugin with sysfs-based metrics and Unraid integr
 <REMOVE>remove.sh</REMOVE>
 
 </PLUGIN>
+
