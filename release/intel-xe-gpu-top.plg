@@ -3,8 +3,8 @@
   <!ENTITY name      "intel-xe-gpu-top">
   <!ENTITY author    "SoRadGaming">
   <!ENTITY version   "2025.01">
-  <!ENTITY gitURL    "https://github.com/SoRadGaming/intel-xe-gpu-top-unraid/releases/download">
-  <!ENTITY md5       "ab1183a016e474220839f7389907152b">
+  <!ENTITY gitURL    "https://raw.githubusercontent.com/<owner>/<repo>/main/release">
+  <!ENTITY md5       "7c2039536eec3343e270236210ca4050">
   <!ENTITY plugin    "/boot/config/plugins/&name;">
   <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
 ]>
@@ -21,7 +21,7 @@
   </FILE>
 
   <FILE Name="/boot/config/plugins/&name;/intel-xe-gpu-top-&version;.txz" Run="upgradepkg --install-new">
-    <URL>&gitURL;/&version;/intel-xe-gpu-top-&version;.txz</URL>
+    <URL>&gitURL;/intel-xe-gpu-top-&version;.txz</URL>
     <MD5>&md5;</MD5>
   </FILE>
 

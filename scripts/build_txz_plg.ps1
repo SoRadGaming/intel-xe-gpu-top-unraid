@@ -88,9 +88,12 @@ Write-Host "Created: $txz"
 $md5 = (Get-FileHash -Path $txz -Algorithm MD5).Hash.ToLower()
 Write-Host "MD5: $md5"
 
-# generate manifest (.plg) referencing the release download URL
+# generate manifest (.plg) referencing the download URL
 $plgPath = Join-Path (Get-Location) "release\$Name.plg"
-$gitURL = if ($Owner -and $Repo) { "https://github.com/$Owner/$Repo/releases/download" } else { "https://github.com/<owner>/<repo>/releases/download" }
+# By default point to the raw repo 'release' folder so users who commit the txz can install without a GitHub Release.
+$rawRepoUrl = if ($Owner -and $Repo) { "https://raw.githubusercontent.com/$Owner/$Repo/main/release" } else { "https://raw.githubusercontent.com/<owner>/<repo>/main/release" }
+# The Releases URL will only be used when -Upload is supplied and gh uploads the asset
+$releasesUrl = if ($Owner -and $Repo) { "https://github.com/$Owner/$Repo/releases/download" } else { "https://github.com/<owner>/<repo>/releases/download" }
 
 # Create manifest template with placeholders to avoid PowerShell expanding shell $() or &
 $plgTemplate = @'
@@ -117,7 +120,7 @@ $plgTemplate = @'
   </FILE>
 
   <FILE Name="/boot/config/plugins/&name;/intel-xe-gpu-top-&version;.txz" Run="upgradepkg --install-new">
-    <URL>&gitURL;/&version;/intel-xe-gpu-top-&version;.txz</URL>
+    <URL>&gitURL;/intel-xe-gpu-top-&version;.txz</URL>
     <MD5>&md5;</MD5>
   </FILE>
 
@@ -131,10 +134,13 @@ $plgTemplate = @'
 </PLUGIN>
 '@
 
-# substitute placeholders with actual values
-$plg = $plgTemplate -replace '__NAME__', $Name -replace '__VERSION__', $Version -replace '__GITURL__', $gitURL -replace '__MD5__', $md5
+## By default point the manifest at the raw repo folder
+$defaultGitUrl = $rawRepoUrl
+
+# substitute placeholders with actual values (default to raw repo URL)
+$plg = $plgTemplate -replace '__NAME__', $Name -replace '__VERSION__', $Version -replace '__GITURL__', $defaultGitUrl -replace '__MD5__', $md5
 Set-Content -Path $plgPath -Value $plg -Encoding UTF8
-Write-Host "Generated manifest: $plgPath"
+Write-Host "Generated manifest: $plgPath (points to $defaultGitUrl)"
 
 if ($Upload) {
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { Fail "gh (GitHub CLI) not found in PATH. Install and authenticate before using -Upload." }
@@ -145,9 +151,13 @@ if ($Upload) {
   gh release create $tag $txz --title $tag --notes "Release $tag"
   if ($LASTEXITCODE -ne 0) { Fail "gh release create failed" }
   Write-Host "Uploaded asset to release $tag"
-    # After upload, output the expected raw manifest URL for use in Unraid
-    $rawPlgUrl = "https://raw.githubusercontent.com/$Owner/$Repo/main/release/$Name.plg"
-    Write-Host "Manifest URL (raw): $rawPlgUrl"
+    # When we uploaded to Releases, regenerate the manifest so it points at the Releases download URL
+    # The Releases download URL requires the version segment: /releases/download/<version>/<file>
+    $releasesDownloadWithVersion = "$releasesUrl/$Version"
+    $plg = $plgTemplate -replace '__NAME__', $Name -replace '__VERSION__', $Version -replace '__GITURL__', $releasesDownloadWithVersion -replace '__MD5__', $md5
+    Set-Content -Path $plgPath -Value $plg -Encoding UTF8
+    $releasesPlgUrl = "https://raw.githubusercontent.com/$Owner/$Repo/main/release/$Name.plg"
+    Write-Host "Updated manifest to point at Releases URL (downloads from $releasesDownloadWithVersion). Manifest raw URL: $releasesPlgUrl"
 }
 
 Write-Host "Done."
