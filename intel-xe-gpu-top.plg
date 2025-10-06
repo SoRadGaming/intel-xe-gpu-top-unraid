@@ -1,16 +1,26 @@
-<?xml version="1.0"?>
-<PLUGIN name="intel-xe-gpu-top" author="SoRadGaming" version="2025.01" pluginURL="https://github.com/SoRadGaming/intel-xe-gpu-top-unraid" support="https://forums.unraid.net" min="6.10.0">
-  <CHANGES>
-    Initial release — Intel Xe GPU plugin with sysfs-based metrics and Unraid integration.
-  </CHANGES>
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN [
+  <!ENTITY name      "intel-xe-gpu-top">
+  <!ENTITY author    "SoRadGaming">
+  <!ENTITY version   "2025.01">
+  <!ENTITY pluginURL "https://raw.githubusercontent.com/&author;/&name;/main/release/&name;.plg">
+  <!ENTITY plugin    "/boot/config/plugins/&name;">
+  <!ENTITY emhttp    "/usr/local/emhttp/plugins/&name;">
+]>
 
-  <FILE Name="/boot/config/plugins/intel-xe-gpu-top/install.sh" Mode="0755">install.sh</FILE>
-  <FILE Name="/boot/config/plugins/intel-xe-gpu-top/remove.sh" Mode="0755">remove.sh</FILE>
-  <FILE Name="/usr/local/emhttp/plugins/intel-xe-gpu-top/IntelXeGpu.page" Mode="0644">webGui/IntelXeGpu.page</FILE>
-  <FILE Name="/usr/local/emhttp/plugins/intel-xe-gpu-top/include/IntelXeGpu.json.php" Mode="0644">webGui/include/IntelXeGpu.json.php</FILE>
-  <FILE Name="/usr/local/sbin/intel_xe_collector.py" Mode="0755">bin/intel_xe_collector.py</FILE>
-  <FILE Name="/etc/rc.d/S99intel-xe-gpu-top" Mode="0755">etc/rc.d/S99intel-xe-gpu-top</FILE>
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" min="6.10.0">
 
-  <INSTALL>install.sh</INSTALL>
-  <REMOVE>remove.sh</REMOVE>
+<CHANGES>
+Initial release - Intel Xe GPU plugin with sysfs-based metrics and Unraid integration.
+</CHANGES>
+<FILE Name="/boot/config/plugins/&name;/install.sh" Mode="0755">install.sh</FILE>
+<FILE Name="/boot/config/plugins/&name;/remove.sh" Mode="0755">remove.sh</FILE>
+<FILE Name="&emhttp;/IntelXeGpu.page" Mode="0644">webGui/IntelXeGpu.page</FILE>
+<FILE Name="&emhttp;/include/IntelXeGpu.json.php" Mode="0644">webGui/include/IntelXeGpu.json.php</FILE>
+<FILE Name="/usr/local/sbin/intel_xe_collector.py" Mode="0755">bin/intel_xe_collector.py</FILE>
+<FILE Name="/etc/rc.d/S99intel-xe-gpu-top" Mode="0755">etc/rc.d/S99intel-xe-gpu-top</FILE>
+
+<INSTALL>install.sh</INSTALL>
+<REMOVE>remove.sh</REMOVE>
+
 </PLUGIN>

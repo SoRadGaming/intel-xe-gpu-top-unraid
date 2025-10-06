@@ -1,0 +1,37 @@
+# Ignore built plugin packages (release artifacts)
+release/*.plg
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+venv/
+.venv/
+env/
+
+# Editor/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp
+.cache/
+*.log
+tmp/
+temp/
+
+# Archives and packaging
+*.tar.gz
+*.zip
+
+# Node
+node_modules/
+
+# Optional: if you want to keep release .plg in repo, remove the release entry above or add a commit exception when needed
